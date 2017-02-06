@@ -16,7 +16,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
 @IBOutlet weak var searchBar: UISearchBar!
 
 var movies: [NSDictionary]?
-
+var filteredDic: [NSDictionary]?
 
 override func viewDidLoad() {
 super.viewDidLoad()
@@ -33,6 +33,7 @@ super.viewDidLoad()
             if let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as? NSDictionary {
                 print(dataDictionary)
                 self.movies = dataDictionary["results"] as? [NSDictionary]
+                self.filteredDic = self.movies
                 self.tableView.reloadData()
                 
             }
@@ -104,36 +105,27 @@ func loadDataFromNetwork() {
 }
     
     
-    
-// This method updates filteredData based on the text in the Search Box
 func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-    // When there is no text, filteredData is the same as the original data
-    // When user has entered text into the search box
-    // Use the filter method to iterate over all items in the data array
-    // For each item, return true if the item should be included and false if the
-    // item should NOT be included
-    let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-    let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")!
-    let myRequest = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
-    // Configure session so that completion handler is executed on main UI thread
-    let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main)
-        let task: URLSessionDataTask = session.dataTask(with: myRequest) { (data: Data?, response: URLResponse?, error: Error?) in
-            // ... Use the new data to update the data source ...
-         if let data = data {
-            if let dataDictionary = try! JSONSerialization.jsonObject(with: data, options:[]) as? NSDictionary {
-                print(dataDictionary)
-                self.movies = searchText.isEmpty ? data : data.filter({(dataString : String) -> Bool in
-                    // If dataItem matches the searchText, return true to include it
-                    return dataString.range(of: searchText,options: .caseInsensitive) != nil
-                    //return dataString.range(of: searchText, options: .caseInsensitive) != nil
-                })
-                self.tableView.reloadData()
-            }
-        }
-    };
-  task.resume()
+    self.filteredDic = self.movies?.filter({ (movies) -> Bool in
+        return (movies["title"] as! String).range(of: searchText, options:.caseInsensitive, range: nil, locale: nil) != nil
+    })
+    /*DispatchQueue.main.async {
+        self.collectionView.reloadData()
+    }*/
+    self.tableView.reloadData()
 }
     
+func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+    self.searchBar.showsCancelButton = true
+}
+    
+func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+    searchBar.showsCancelButton = false
+    searchBar.text = ""
+    searchBar.resignFirstResponder()
+    viewDidLoad()
+
+}
     
 override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
@@ -142,8 +134,8 @@ override func didReceiveMemoryWarning() {
 
 
 func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
-    if let movies = movies{
-        return movies.count
+    if let filteredDic = filteredDic{
+        return filteredDic.count
     }
     else{
         return 0
@@ -153,7 +145,7 @@ func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> 
 func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell{
 
     let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell", for: indexPath) as! MovieCell
-    let movie = movies![indexPath.row]
+    let movie = filteredDic![indexPath.row]
     let title = movie["title"] as! String
     let overview = movie["overview"] as! String
     let posterPath = movie["poster_path"] as! String
