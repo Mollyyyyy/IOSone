@@ -14,11 +14,9 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
 
 @IBOutlet weak var tableView: UITableView!
 @IBOutlet weak var searchBar: UISearchBar!
-@IBOutlet weak var myImageView: UIImageView!
     
 var movies: [NSDictionary]?
 var filteredDic: [NSDictionary]?
-var imageUrl: String?
 override func viewDidLoad() {
 super.viewDidLoad()
 
@@ -46,29 +44,33 @@ super.viewDidLoad()
     refreshControl.addTarget(self, action: #selector(refreshControlAction(_:)), for:UIControlEvents.valueChanged)
     self.tableView.insertSubview(refreshControl, at: 0)
     task.resume()
-    let imageRequest = NSURLRequest(url: NSURL(string: imageUrl!) as! URL)
-    self.myImageView.setImageWith(
+    
+    let cell = self.tableView.dequeueReusableCell(withIdentifier: "MovieCell") as! MovieCell
+    let posterPath = filteredDic["poster_path"] as! String
+    let baseUrl = "https://image.tmdb.org/t/p/w500"
+    let imageUrl = baseUrl+posterPath
+    let imageRequest = NSURLRequest(url: NSURL(string: imageUrl)! as URL)
+    cell.posterView.setImageWith(
         imageRequest as URLRequest,
         placeholderImage: nil,
         success: { (imageRequest, imageResponse, image) -> Void in
             // imageResponse will be nil if the image is cached
             if imageResponse != nil {
                 print("Image was NOT cached, fade in image")
-                self.myImageView.alpha = 0.0
-                self.myImageView.image = image
+                cell.posterView.alpha = 0.0
+                cell.posterView.image = image
                 UIView.animate(withDuration: 0.3, animations: { () -> Void in
-                    self.myImageView.alpha = 1.0
+                    cell.posterView.alpha = 1.0
                 })
             } else {
                 print("Image was cached so just update the image")
-                self.myImageView.image = image
+                cell.posterView.image = image
             }
     },
         failure: { (imageRequest, imageResponse, error) -> Void in
             // do something for the failure condition
-             print("Failed to load image")
+            print("Failed to load image")
     })
-
 }
     
     
@@ -102,8 +104,7 @@ func refreshControlAction(_ refreshControl: UIRefreshControl) {
     task.resume()
 }
     
-    
-    
+ 
     
 func loadDataFromNetwork() {
 
@@ -171,13 +172,12 @@ func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> U
     let movie = filteredDic![indexPath.row]
     let title = movie["title"] as! String
     let overview = movie["overview"] as! String
-    let posterPath = movie["poster_path"] as! String
+    /*let posterPath = movie["poster_path"] as! String
     let baseUrl = "https://image.tmdb.org/t/p/w500"
-    let imageURL = NSURL(string: baseUrl+posterPath)
-    imageUrl = baseUrl+posterPath
+    let imageURL = NSURL(string: baseUrl+posterPath)*/
     cell.titleLabel.text = title
     cell.overviewLabel.text = overview
-    cell.posterView.setImageWith(imageURL! as URL)
+    //cell.posterView.setImageWith(imageURL! as URL)
     print("row\(indexPath.row)")
     return cell
 }
