@@ -14,16 +14,18 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
 
 @IBOutlet weak var tableView: UITableView!
 @IBOutlet weak var searchBar: UISearchBar!
-
+@IBOutlet weak var myImageView: UIImageView!
+    
 var movies: [NSDictionary]?
 var filteredDic: [NSDictionary]?
-
+var imageUrl: String?
 override func viewDidLoad() {
 super.viewDidLoad()
 
     tableView.dataSource = self
     tableView.delegate = self
     searchBar.delegate = self
+    
     let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
     let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")!
     let myRequest = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
@@ -35,7 +37,6 @@ super.viewDidLoad()
                 self.movies = dataDictionary["results"] as? [NSDictionary]
                 self.filteredDic = self.movies
                 self.tableView.reloadData()
-                
             }
         }
     };
@@ -45,6 +46,28 @@ super.viewDidLoad()
     refreshControl.addTarget(self, action: #selector(refreshControlAction(_:)), for:UIControlEvents.valueChanged)
     self.tableView.insertSubview(refreshControl, at: 0)
     task.resume()
+    let imageRequest = NSURLRequest(url: NSURL(string: imageUrl!) as! URL)
+    self.myImageView.setImageWith(
+        imageRequest as URLRequest,
+        placeholderImage: nil,
+        success: { (imageRequest, imageResponse, image) -> Void in
+            // imageResponse will be nil if the image is cached
+            if imageResponse != nil {
+                print("Image was NOT cached, fade in image")
+                self.myImageView.alpha = 0.0
+                self.myImageView.image = image
+                UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                    self.myImageView.alpha = 1.0
+                })
+            } else {
+                print("Image was cached so just update the image")
+                self.myImageView.image = image
+            }
+    },
+        failure: { (imageRequest, imageResponse, error) -> Void in
+            // do something for the failure condition
+             print("Failed to load image")
+    })
 
 }
     
@@ -150,10 +173,11 @@ func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> U
     let overview = movie["overview"] as! String
     let posterPath = movie["poster_path"] as! String
     let baseUrl = "https://image.tmdb.org/t/p/w500"
-    let imageUrl = NSURL(string: baseUrl+posterPath)
+    let imageURL = NSURL(string: baseUrl+posterPath)
+    imageUrl = baseUrl+posterPath
     cell.titleLabel.text = title
     cell.overviewLabel.text = overview
-    cell.posterView.setImageWith(imageUrl! as URL)
+    cell.posterView.setImageWith(imageURL! as URL)
     print("row\(indexPath.row)")
     return cell
 }
