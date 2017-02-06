@@ -40,7 +40,7 @@ with your peers** during the next class (examples include better ways to
 
    Here's a walkthrough of implemented user stories:
 
-   <img src='http://i.imgur.com/hkqoh8T.gifv' title='Video
+   <img src='http://i.imgur.com/hkqoh8T.gif' title='Video
    Walkthrough' width='' alt='Video Walkthrough' />
 
    GIF created with [LiceCap](http://www.cockos.com/licecap/).
@@ -51,7 +51,7 @@ with your peers** during the next class (examples include better ways to
 
 ## License
 
-   Copyright [yyyy] [name of copyright owner]
+   Copyright [Xinmeng Li] [name of copyright owner]
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
