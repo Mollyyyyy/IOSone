@@ -17,6 +17,7 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
     
 var movies: [NSDictionary]?
 var filteredDic: [NSDictionary]?
+var endpoint : String!
 override func viewDidLoad() {
 super.viewDidLoad()
 
@@ -25,7 +26,7 @@ super.viewDidLoad()
     searchBar.delegate = self
     
     let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-    let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")!
+    let url = URL(string: "https://api.themoviedb.org/3/movie/\(endpoint!)?api_key=\(apiKey)")!
     let myRequest = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
     let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main)
     let task: URLSessionDataTask = session.dataTask(with: myRequest) { (data: Data?, response: URLResponse?, error: Error?) in
@@ -44,6 +45,8 @@ super.viewDidLoad()
     refreshControl.addTarget(self, action: #selector(refreshControlAction(_:)), for:UIControlEvents.valueChanged)
     self.tableView.insertSubview(refreshControl, at: 0)
     task.resume()
+    
+  
 
 }
     
@@ -56,7 +59,7 @@ func refreshControlAction(_ refreshControl: UIRefreshControl) {
 
     // ... Create the URLRequest `myRequest` ...
     let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-    let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")!
+    let url = URL(string: "https://api.themoviedb.org/3/movie/\(endpoint!)?api_key=\(apiKey)")!
     let myRequest = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
     // Configure session so that completion handler is executed on main UI thread
     let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main)
@@ -84,7 +87,7 @@ func loadDataFromNetwork() {
 
     // ... Create the NSURLRequest (myRequest) ...
     let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-    let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")!
+    let url = URL(string: "https://api.themoviedb.org/3/movie/\(endpoint!)?api_key=\(apiKey)")!
     let myRequest = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
     // Configure session so that completion handler is executed on main UI thread
     let session = URLSession(
@@ -146,10 +149,10 @@ func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> U
     let movie = filteredDic![indexPath.row]
     let title = movie["title"] as! String
     let overview = movie["overview"] as! String
-    let posterPath = movie["poster_path"] as! String
     let baseUrl = "https://image.tmdb.org/t/p/w500"
-    let imageUrl = baseUrl+posterPath
-    let imageRequest = NSURLRequest(url: NSURL(string: imageUrl)! as URL)
+    let posterPath = movie["poster_path"] as? String
+    let posterUrl = baseUrl+posterPath!
+    let imageRequest = NSURLRequest(url: NSURL(string: posterUrl)! as URL)
     cell.titleLabel.text = title
     cell.overviewLabel.text = overview
     cell.posterView.setImageWith(
@@ -177,14 +180,22 @@ func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> U
     return cell
 }
 
-/*
+
 // MARK: - Navigation
 
 // In a storyboard-based application, you will often want to do a little preparation before navigation
 override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+    let cell = sender! as! UITableViewCell
+    let indexPath = tableView.indexPath(for: cell)
+    let movie = movies?[(indexPath?.row)!]
+    let detailViewController = segue.destination as! DetailViewController
+    detailViewController.movie = movie!
+    detailViewController.hidesBottomBarWhenPushed = true
+    
+    
 // Get the new view controller using segue.destinationViewController.
 // Pass the selected object to the new view controller.
 }
-*/
+
 
 }
